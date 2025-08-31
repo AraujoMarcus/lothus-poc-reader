@@ -36,7 +36,7 @@ A UI permite upload de imagens (não há mais opção de carregar amostras locai
 
 ## Notas
 
-- Modelo utilizado: `gpt-5`.
+- Modelo utilizado: `gpt-5-nano`.
 - Saída normalizada inclui: `marca_nome`, `marca`, `produto`, `preco_brl`, `preco_brl_texto`, `condicoes`.
 
 ## Autenticação da OpenAI

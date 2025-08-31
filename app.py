@@ -242,7 +242,7 @@ def main() -> None:
             except Exception:
                 default_key = ""
         api_key = st.text_input("Chave da OpenAI", value=default_key, type="password", help="A chave não será exibida.")
-        st.write(":lock: Modelo utilizado: gpt-5")
+        st.write(":lock: Modelo utilizado: gpt-5-nano")
 
     st.subheader("Envio de imagens")
     uploaded_files = st.file_uploader(
@@ -281,7 +281,7 @@ def main() -> None:
             st.stop()
 
         progress = st.progress(0.0, text="Processando imagens...")
-        model = "gpt-5"
+        model = "gpt-5-nano"
         collected: List[Tuple[str, Dict[str, Any]]] = []
 
         for idx, (filename, img_bytes) in enumerate(images_to_process, start=1):
