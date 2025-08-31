@@ -214,18 +214,6 @@ def get_openai_client(api_key: Optional[str]):
     return OpenAI(api_key=key)
 
 
-def list_sample_images(sample_dir: str) -> List[str]:
-    paths: List[str] = []
-    if not os.path.isdir(sample_dir):
-        return paths
-    for name in os.listdir(sample_dir):
-        lower = name.lower()
-        if lower.endswith((".jpg", ".jpeg", ".png")):
-            paths.append(os.path.join(sample_dir, name))
-    paths.sort()
-    return paths
-
-
 def main() -> None:
     # Carrega variáveis do .env se existir
     try:
@@ -233,9 +221,16 @@ def main() -> None:
     except Exception:
         pass
 
-    st.set_page_config(page_title="Leitor de Ofertas - Lothus AI", layout="wide")
-    st.title("Leitor de Ofertas com LLM (Streamlit)")
-    st.caption("Extração de Marca+Produto, Preço (BRL) e Condições a partir de imagens.")
+    st.set_page_config(page_title="Leitor de Ofertas (IA) - Lothus", layout="wide")
+    st.title("Leitor de Ofertas com IA")
+    st.caption("Envie imagens de banners/folhetos. Eu identifico Produtos, Preços (R$) e Condições.")
+    st.markdown(
+        """
+        1) Envie uma ou mais imagens no campo abaixo.
+        2) Clique em "Extrair dados" para processar.
+        3) Revise os resultados e baixe o CSV.
+        """
+    )
 
     with st.sidebar:
         st.header("Configuração")
@@ -246,26 +241,13 @@ def main() -> None:
                 default_key = st.secrets["OPENAI_API_KEY"]  # type: ignore[index]
             except Exception:
                 default_key = ""
-        api_key = st.text_input("OpenAI API Key", value=default_key, type="password")
+        api_key = st.text_input("Chave da OpenAI", value=default_key, type="password", help="A chave não será exibida.")
+        st.write(":lock: Modelo utilizado: gpt-5")
 
-        model = st.selectbox(
-            "Modelo",
-            options=["gpt-4o-mini", "gpt-4o", "gpt-5"],
-            index=0,
-            help="Modelos com visão. 'gpt-4o-mini' é mais econômico.",
-        )
-
-    st.subheader("Fonte de Imagens")
-    col1, col2 = st.columns(2)
-    uploaded_files = col1.file_uploader(
-        "Envie imagens (JPG/PNG)", type=["jpg", "jpeg", "png"], accept_multiple_files=True
+    st.subheader("Envio de imagens")
+    uploaded_files = st.file_uploader(
+        "Solte ou selecione imagens (JPG/PNG)", type=["jpg", "jpeg", "png"], accept_multiple_files=True
     )
-
-    sample_dir = os.path.join(os.getcwd(), "sample-data")
-    sample_paths = list_sample_images(sample_dir)
-    use_samples = False
-    if col2.button("Carregar amostras da pasta ./sample-data"):
-        use_samples = True
 
     images_to_process: List[Tuple[str, bytes]] = []
     preview_columns = st.columns(4)
@@ -285,25 +267,12 @@ def main() -> None:
                 pass
             col_idx += 1
 
-    if use_samples and sample_paths:
-        st.write(f"Amostras localizadas: {len(sample_paths)}")
-        for path in sample_paths:
-            try:
-                img = Image.open(path)
-                img_bytes = pil_image_to_bytes(img)
-                images_to_process.append((os.path.basename(path), img_bytes))
-                with preview_columns[col_idx % 4]:
-                    st.image(img, caption=os.path.basename(path), use_column_width=True)
-            except Exception:
-                continue
-            col_idx += 1
-
     st.divider()
-    run = st.button("Extrair dados com LLM", type="primary", use_container_width=True)
+    run = st.button("Extrair dados", type="primary", use_container_width=True)
 
     if run:
         if not images_to_process:
-            st.warning("Envie imagens ou carregue amostras para continuar.")
+            st.warning("Envie imagens para continuar.")
             st.stop()
         try:
             client = get_openai_client(api_key)
@@ -312,6 +281,7 @@ def main() -> None:
             st.stop()
 
         progress = st.progress(0.0, text="Processando imagens...")
+        model = "gpt-5"
         collected: List[Tuple[str, Dict[str, Any]]] = []
 
         for idx, (filename, img_bytes) in enumerate(images_to_process, start=1):

@@ -32,11 +32,11 @@ export OPENAI_API_KEY=seu_token_aqui
 streamlit run app.py
 ```
 
-A UI permite upload de imagens ou uso das amostras em `./sample-data`.
+A UI permite upload de imagens (não há mais opção de carregar amostras locais).
 
 ## Notas
 
-- Modelos sugeridos: `gpt-4o-mini` (econômico) e `gpt-4o`.
+- Modelo utilizado: `gpt-5`.
 - Saída normalizada inclui: `marca_nome`, `marca`, `produto`, `preco_brl`, `preco_brl_texto`, `condicoes`.
 
 ## Autenticação da OpenAI
