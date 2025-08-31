@@ -234,57 +234,20 @@ def main() -> None:
         pass
 
     st.set_page_config(page_title="Leitor de Ofertas - Lothus AI", layout="wide")
-    # Controle de acesso por e-mail (allowlist via secrets/env)
-    def _get_allowed_emails() -> set:
-        allowed: set = set()
-        # Via secrets.toml
-        try:
-            if hasattr(st, "secrets") and "ALLOWED_EMAILS" in st.secrets:  # type: ignore[operator]
-                val = st.secrets["ALLOWED_EMAILS"]  # type: ignore[index]
-                if isinstance(val, list):
-                    allowed.update([str(x).strip().lower() for x in val if str(x).strip()])
-                elif isinstance(val, str):
-                    parts = [p.strip() for p in val.replace(";", ",").split(",")]
-                    allowed.update([p.lower() for p in parts if p])
-        except Exception:
-            pass
-        # Via env
-        env_val = os.getenv("ALLOWED_EMAILS", "").strip()
-        if env_val:
-            parts = [p.strip() for p in env_val.replace(";", ",").split(",")]
-            allowed.update([p.lower() for p in parts if p])
-        return allowed
-
-    def _get_current_user_email() -> str:
-        # Streamlit Cloud expõe o usuário autenticado em st.experimental_user
-        try:
-            user = getattr(st, "experimental_user", None)
-            if user is not None:
-                # Pode ser objeto com atributo .email ou dict
-                email = getattr(user, "email", None)
-                if not email and isinstance(user, dict):
-                    email = user.get("email")
-                if isinstance(email, str) and email:
-                    return email.strip().lower()
-        except Exception:
-            pass
-        # Fallback local para desenvolvimento
-        env_email = os.getenv("STREAMLIT_USER_EMAIL", "").strip()
-        if env_email:
-            return env_email.lower()
-        return ""
-
-    allowed_emails = _get_allowed_emails()
-    current_email = _get_current_user_email()
-    if allowed_emails:
-        if not current_email or current_email not in allowed_emails:
-            st.error("Acesso restrito. Seu e-mail não está autorizado para usar esta aplicação.")
-            st.stop()
     st.title("Leitor de Ofertas com LLM (Streamlit)")
     st.caption("Extração de Marca+Produto, Preço (BRL) e Condições a partir de imagens.")
 
     with st.sidebar:
         st.header("Configuração")
+        # Campo para chave da OpenAI (com valor padrão vindo de env/secrets)
+        default_key = os.getenv("OPENAI_API_KEY", "")
+        if not default_key:
+            try:
+                default_key = st.secrets["OPENAI_API_KEY"]  # type: ignore[index]
+            except Exception:
+                default_key = ""
+        api_key = st.text_input("OpenAI API Key", value=default_key, type="password")
+
         model = st.selectbox(
             "Modelo",
             options=["gpt-4o-mini", "gpt-4o", "gpt-5"],
@@ -343,7 +306,7 @@ def main() -> None:
             st.warning("Envie imagens ou carregue amostras para continuar.")
             st.stop()
         try:
-            client = get_openai_client(api_key=None)
+            client = get_openai_client(api_key)
         except Exception as e:
             st.error(str(e))
             st.stop()

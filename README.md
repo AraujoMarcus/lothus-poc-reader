@@ -39,29 +39,6 @@ A UI permite upload de imagens ou uso das amostras em `./sample-data`.
 - Modelos sugeridos: `gpt-4o-mini` (econômico) e `gpt-4o`.
 - Saída normalizada inclui: `marca_nome`, `marca`, `produto`, `preco_brl`, `preco_brl_texto`, `condicoes`.
 
-## Controle de acesso (allowlist de e-mails)
+## Autenticação da OpenAI
 
-Para restringir o uso a e-mails específicos no deploy público (ex.: [Streamlit Cloud](https://share.streamlit.io/)):
-
-- Defina `ALLOWED_EMAILS` como lista no `secrets.toml`:
-
-```toml
-ALLOWED_EMAILS = [
-  "email1@dominio.com",
-  "email2@dominio.com"
-]
-```
-
-Ou como string separada por vírgulas (env):
-
-```bash
-export ALLOWED_EMAILS="email1@dominio.com,email2@dominio.com"
-```
-
-Localmente, se precisar simular um usuário:
-
-```bash
-export STREAMLIT_USER_EMAIL="seu.email@dominio.com"
-```
-
-Obs.: E-mails não ficam expostos no código; use secrets/env no provedor.
+Você pode informar a chave da OpenAI pela UI (sidebar) ou via `.env`/variáveis de ambiente/`secrets`.
